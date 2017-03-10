@@ -1,11 +1,14 @@
-from __future__ import print_function
+# from __future__ import print_function
 import httplib2
 import os
+import calendar
+import time
 
 from apiclient import discovery
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
+from yaml import load
 
 import datetime
 
@@ -80,6 +83,24 @@ event = {
 }
 
 
+def submit_event(service, calendar_id, event_body):
+  print('---- start event ---')
+  print(event_body)
+  print ('--- end event ---')
+  wait = True
+  while wait:
+    try:
+      created_event = service.events().quickAdd(
+        calendarId=calendar_id,
+        # text="WHAT:  2017 Entertainment Industry Dinner WHO:  honoring Bill Prady WHEN: WEDNESDAY MAY 24 6:30pm WHERE:  Beverly Hilton Hotel;  9876 Wilshire Blvd;  Beverly Hills DESCRIPTION:  Franci Blattner  310-446-4266  fblattner@adl.org").execute()
+        text=event_body).execute()
+      wait = None
+    except Exception as e:
+      print(e)
+      wait = True
+      print('waiting 5 seconds')
+      time.sleep(5)
+
 
 def main():
     """Shows basic usage of the Google Calendar API.
@@ -90,35 +111,39 @@ def main():
     credentials = get_credentials()
     http = credentials.authorize(httplib2.Http())
     service = discovery.build('calendar', 'v3', http=http)
-    event = {
-      'summary': 'Google I/O 2015',
-      'location': '800 Howard St., San Francisco, CA 94103',
-      'description': 'A chance to hear more about Google\'s developer products.',
-      'start': {
-        'dateTime': '2017-03-08T09:00:00-07:00',
-        'timeZone': 'America/Los_Angeles',
-      },
-      'end': {
-        'dateTime': '2017-03-08T17:00:00-07:00',
-        'timeZone': 'America/Los_Angeles',
-      },
-      'recurrence': [
-        'RRULE:FREQ=DAILY;COUNT=2'
-      ],
-      'attendees': [
-        {'email': 'lpage@example.com'},
-        {'email': 'sbrin@example.com'},
-      ],
-      # 'reminders': {
-      #   'useDefault': False,
-      #   'overrides': [
-      #     {'method': 'email', 'minutes': 24 * 60},
-      #     {'method': 'popup', 'minutes': 10},
-      #   ],
-      # },
-    }
-    event = service.events().insert(calendarId='primary', body=event).execute()
-    print('Event created: %s' % (event.get('htmlLink')))
+
+    calendar_id = load(open('creds.yaml', 'r'))['calendar_id']
+    # cred = load(open('creds.yaml', 'r'))[ENV]
+
+    f = open("example_email.txt")
+    next_line = f.readline()
+    days_of_week = list(calendar.day_name)
+    event_body = ""
+    while next_line != "":
+      if any(day.lower() in next_line.lower() for day in days_of_week):
+        # print('---')
+        date = next_line.strip()
+      # print(next_line)
+      # change contact to description
+
+      if "WHAT: " in next_line:
+        if event_body != "":
+          submit_event(service, calendar_id, event_body)
+
+        event_body = next_line
+      elif "WHEN: " in next_line:
+        event_body += next_line.replace("WHEN: ", "WHEN: " + date)
+      elif "CONTACT: " in next_line:
+        event_body += next_line.replace("CONTACT:", "DESCRIPTION:")
+      elif "WHO: " in next_line:
+      # if any(day.lower() in next_line.lower() for day in days_of_week):
+        event_body += next_line
+      else:
+        pass
+
+      next_line = f.readline()
+    # submit final event
+    submit_event(service, calendar_id, event_body)
 
     now = datetime.datetime.utcnow().isoformat() + 'Z' # 'Z' indicates UTC time
     print('Getting the upcoming 10 events')
