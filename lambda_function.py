@@ -79,7 +79,7 @@ def parse_message(body):
 #     try:
 #       created_event = service.events().quickAdd(
 #         calendarId=calendar_id,
-#         # text="WHAT:  2017 Entertainment Industry Dinner WHO:  honoring Bill Prady WHEN: WEDNESDAY MAY 24 6:30pm WHERE:  Beverly Hilton Hotel;  9876 Wilshire Blvd;  Beverly Hills DESCRIPTION:  Franci Blattner  310-446-4266  fblattner@adl.org").execute()
+#         # text="WHAT:  2017 Entertainment Industry Dinner WHO:  honoring Bill Prady WHEN: WEDNESDAY MAY 24 6:30pm WHERE:  Beverly Hilton Hotel;  9876 Wilshire Blvd;  Beverly Hills DESCRIPTION:  person phone-number email@email.com").execute()
 #         text=event_body).execute()
 #       wait = None
 #       print 'submitted'
