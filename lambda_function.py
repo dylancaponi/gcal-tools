@@ -31,35 +31,45 @@ def parse_message(body):
     next_line = body.readline()
     days_of_week = list(calendar.day_name)
     event_body = ""
+    date = None
     while next_line != "":
+      # set the date
       if any(day.lower() in next_line.lower() for day in days_of_week):
-        # print('---')
         date = next_line.strip()
-      # print(next_line)
-      # change contact to description
 
-      if next_line.startswith("WHAT: "):
-        if event_body != "":
-          # submit_event(service, calendar_id, event_body)
-          print event_body
-          print '---'
-        event_body = next_line
-      elif next_line.startswith("WHO: "):
-      # if any(day.lower() in next_line.lower() for day in days_of_week):
-        event_body += next_line
-      elif next_line.startswith("WHEN: "):
-        event_body += next_line.replace("WHEN: ", "WHEN: " + date)
-      elif next_line.startswith("WHERE: "):
-        event_body += next_line
-      elif next_line.startswith("CONTACT: "):
-        event_body += next_line.replace("CONTACT:", "DESCRIPTION:")
-      else:
-        pass
+      elif date:
+        # start of event, submit old event
+        if next_line.startswith("WHAT: "):
+          if event_body != "":
+            # submit_event(service, calendar_id, event_body)
+            print event_body.replace("\n", "")
+            print '---'
+          append_description = ""
+          event_body = next_line
+        elif next_line.startswith("WHO: "):
+          append_description += next_line
+        elif next_line.startswith("WHEN: "):
+          event_body += next_line.replace("WHEN: ", "WHEN: " + date)
+        elif next_line.startswith("WHERE: "):
+          event_body += next_line
+        elif next_line.startswith("CONTACT: "):
+          event_body += next_line.replace("CONTACT:", "DESCRIPTION:") + append_description
+        elif next_line.isspace():
+          pass
+        elif next_line.startswith("NEW: "):
+          pass
+          # or add to title?
+        elif next_line.startswith("*Random Fact of the Day:") or next_line.startswith("*CONFIDENTIALITY NOTICE:"):
+          break
+        else:
+          event_body += next_line
+          # pass
+
 
       next_line = body.readline()
     # submit final event
     print 'final event ---'
-    print event_body
+    print event_body.replace("\n", "")
     # submit_event(service, calendar_id, event_body)
 
 
